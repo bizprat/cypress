@@ -64,9 +64,12 @@ export const tapRunnerSource = {
   },
 }
 
+// '__never__' matches no id, so getTestsState serializes every test — passing a
+// real testId would exclude the matching test itself (see TapTestsRunner).
+const getAllTests = (runner: TapTestsRunner) => runner.getTestsState('__never__')
+
 export const serializeTestsState = (runner: TapTestsRunner): TestStateEntry[] => {
-  // '__never__' matches no id, so every test is serialized (see TapTestsRunner).
-  const tests = Object.values(runner.getTestsState('__never__'))
+  const tests = Object.values(getAllTests(runner))
 
   return tests.map(({ id, title, duration, state, currentRetry }): TestStateEntry => {
     return {
@@ -90,9 +93,7 @@ const serializeTestError = (err: Record<string, unknown>): TestError => {
 }
 
 export const serializeTestDetail = (runner: TapTestsRunner, testId: string): TestDetailEntry | undefined => {
-  // Pass the sentinel, not testId: getTestsState excludes the matching id, so
-  // the wanted test would never be in the result (see TapTestsRunner).
-  const test = runner.getTestsState('__never__')[testId]
+  const test = getAllTests(runner)[testId]
 
   if (!test) {
     return undefined
@@ -116,9 +117,7 @@ export const serializeTestDetail = (runner: TapTestsRunner, testId: string): Tes
 }
 
 export const serializeTestCommands = (runner: TapTestsRunner, testId: string): CommandEntry[] | undefined => {
-  // Pass the sentinel, not testId: getTestsState excludes the matching id, so
-  // the wanted test would never be in the result (see TapTestsRunner).
-  const test = runner.getTestsState('__never__')[testId]
+  const test = getAllTests(runner)[testId]
 
   if (!test) {
     return undefined
